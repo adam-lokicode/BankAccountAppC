@@ -38,8 +38,9 @@ public:
 
     bool withdraw(int amount) {
         
-        SOMETIMES(amount > balance, "Wihdrawal amount is greater than balance", {{"amount", amount}});
+        //SOMETIMES(amount > balance, "Wihdrawal amount is greater than balance", {{"amount", amount}});
         if (amount > balance || amount <= 0) {
+            SOMETIMES_GREATER_THAN(amount, balance, "Wihdrawal amount is greater than balance", {{"amount", amount}});
             antithesis::send_event("withdrawal_failed", antithesis::JSON{
                 {"amount", amount},
                 {"balance", balance}
@@ -49,7 +50,14 @@ public:
       
         ALWAYS(amount >= 0);
         ALWAYS(amount <= balance, "Wihdrawal amount is less than or equal to balance", {{"amount", amount}});
-        
+        int percentage = (amount * 100)/balance;
+        if (percentage < 10) {
+            SOMETIMES_LESS_THAN(percentage, 10, "Wihdrawal amount is signficantly less than 10% of balance", {{"amount", amount}});
+            antithesis::send_event("withdrawal_amount is really low", antithesis::JSON{
+                {"amount", amount},
+                {"balance", balance}
+            });
+        }
         balance -= amount;
         antithesis::send_event("withdrawal_successful", antithesis::JSON{
             {"amount", amount},
