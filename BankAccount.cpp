@@ -7,22 +7,39 @@
 class BankAccount {
 private:
     int balance;
+    static constexpr int MAX_BALANCE = 700; //??
 public:
     BankAccount(int initialBalance) : balance(initialBalance) {}
 
     void deposit(int amount) {
-        
+        if (amount == 0) {
+            antithesis::send_event("deposit_failed", antithesis::JSON{
+                {"amount", amount},
+                {"balance", balance},
+                {"reason", "Deposit amount cannot be zero"}
+            });
+            return; // Prevent deposit
+        }
+       
+        if (balance + amount > MAX_BALANCE) {
+            antithesis::send_event("deposit_failed", antithesis::JSON{
+                {"amount", amount},
+                {"balance", balance}
+            });
+            return; // Deposit would exceed maximum balance
+        }
         balance += amount;
         antithesis::send_event("deposit_successful", antithesis::JSON{
             {"amount", amount},
             {"balance", balance}
         });
+        ALWAYS(balance <= MAX_BALANCE);
     }
 
     bool withdraw(int amount) {
         
         SOMETIMES(amount > balance, "Wihdrawal amount is greater than balance", {{"amount", amount}});
-        if (amount > balance) {
+        if (amount > balance || amount <= 0) {
             antithesis::send_event("withdrawal_failed", antithesis::JSON{
                 {"amount", amount},
                 {"balance", balance}
@@ -50,17 +67,24 @@ public:
 int main() {
 
      int i = 1;
+     //balance overflow (integer overflow)
+   
      BankAccount account(100);
      antithesis::send_event("start", antithesis::JSON{
         {"transaction", "start"},
         {"timestamp", antithesis::getTimestamp()}
     } 
 ); 
-     while (i <= 10000) {
+int num = antithesis::randomInt(0, 1);
+int finalTransactionAttempts;
+if (num == 0) {
+    finalTransactionAttempts = 0;
+} else {
+    finalTransactionAttempts = 10000;
+}
+     while (i <= finalTransactionAttempts) {
         i++;
     
-    
-
     
     // Determine random withdrawl or deposit
     int transactionType = antithesis::randomInt(0, 1);  // 0 for deposit, 1 for withdraw
@@ -69,8 +93,8 @@ int main() {
         account.deposit(depositAmount);
         std::cout << "Deposit successful! New balance: " << account.getBalance() << std::endl;
     } else {
-    int withdrawAmount = antithesis::randomInt(1, 200);  // This will be made random
-    ALWAYS(withdrawAmount >= 0);
+    int withdrawAmount = antithesis::randomInt(1, 700);  // This will be made random
+
 
     if (account.withdraw(withdrawAmount)) {
         std::cout << "Withdrawal successful! New balance: " << account.getBalance() << std::endl;
