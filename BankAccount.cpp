@@ -47,7 +47,7 @@ public:
             });
             return false; // Insufficient funds
         }
-      
+        
         ALWAYS(amount >= 0);
         ALWAYS(amount <= balance, "Wihdrawal amount is less than or equal to balance", {{"amount", amount}});
         int percentage = (amount * 100)/balance;
