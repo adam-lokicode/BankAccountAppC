@@ -83,8 +83,6 @@ Ensure the function has a proper return.
 
 ---
 
-## 📝 Interview Tips for Solutions Engineer Role
-
 ### Understand the Code Before Making Changes:
 
 - Identify **inputs, outputs, and flow of logic**.
