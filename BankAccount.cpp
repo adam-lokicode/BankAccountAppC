@@ -33,17 +33,19 @@ public:
         }
         
         balance += amount;
+        // Logging successful deposit with Antithesis SDK
         antithesis::send_event("deposit_successful", antithesis::JSON{
             {"amount", amount},
             {"balance", balance}
         });
         
-        ALWAYS(balance <= MAX_BALANCE);
+        ALWAYS(balance <= MAX_BALANCE); // Antithesis assertion for maximum balance constraint
     }
 
     // Function to withdraw money from the account
     bool withdraw(int amount) {
         if (amount <= 0 || amount > balance) { // Validate withdrawal amount
+            // Antithesis conditional logging for rare case scenarios
             SOMETIMES_GREATER_THAN(amount, balance, "Withdrawal amount exceeds balance", {{"amount", amount}});
             antithesis::send_event("withdrawal_failed", antithesis::JSON{
                 {"amount", amount},
@@ -57,6 +59,7 @@ public:
         
         int percentage = (balance == 0) ? 0 : (amount * 100) / balance; // Prevent division by zero
         if (percentage < 10) {
+            // Antithesis instrumentation for small withdrawals
             SOMETIMES_LESS_THAN(percentage, 10, "Withdrawal is significantly less than 10% of balance", {{"amount", amount}});
             antithesis::send_event("low_withdrawal", antithesis::JSON{
                 {"amount", amount},
@@ -65,6 +68,7 @@ public:
         }
         
         balance -= amount;
+        // Logging successful withdrawal with Antithesis SDK
         antithesis::send_event("withdrawal_successful", antithesis::JSON{
             {"amount", amount},
             {"balance", balance}
@@ -83,6 +87,7 @@ int main() {
     int i = 1;
     
     BankAccount account(100);
+    // Logging start of transactions with Antithesis SDK
     antithesis::send_event("start", antithesis::JSON{
         {"transaction", "start"},
         {"timestamp", antithesis::getTimestamp()}
@@ -110,6 +115,7 @@ int main() {
         }
     }
     
+    // Logging end of transactions with Antithesis SDK
     antithesis::send_event("end", antithesis::JSON{
         {"transaction", "end"},
         {"timestamp", antithesis::getTimestamp()}
